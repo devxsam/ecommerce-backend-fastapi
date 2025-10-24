@@ -79,8 +79,6 @@ These endpoints require no authentication and are available to any user:
 
 Once a user has authenticated, they can use their JWT token to access personal and transactional resources:
 
-**Shopping Cart Management** (POST /cart/items): Customers can add or update items within their personal shopping cart.
-
 **Order Placement** (POST /orders/): Customers can finalize their cart content and convert it into a new, trackable order.
 
 **Order History** (GET /orders/me): Users can securely view their complete history of orders.
@@ -91,9 +89,9 @@ Once a user has authenticated, they can use their JWT token to access personal a
 
 Admin endpoints require a validated JWT token with the Admin role, allowing management and modification of core business data:
 
-**Product Management** (PUT/DELETE /admin/products/{id}): Admins have full CRUD capabilities to update, manage, or remove any product entry.
+**Product Management** : Admins have full CRUD capabilities to update, manage, or remove any product entry.
 
-**Order Status Updates** (PUT /admin/orders/{id}/status): Admins are authorized to change the shipping or processing status of any customer order.
+**Order Status Updates** : Admins are authorized to change the shipping or processing status of any customer order.
 
 
 ---
