@@ -1,0 +1,15 @@
+# Virtual Environment
+venv/
+
+# Secrets and Local Config (MUST BE IGNORED)
+.env
+env.py
+
+# Python generated files
+__pycache__/
+*.pyc
+
+# Alembic specific (optional, but keeps history clean)
+alembic.ini.bak
+# Keep alembic/versions unless you are the only developer, 
+# but it's generally best practice to commit migration files.
