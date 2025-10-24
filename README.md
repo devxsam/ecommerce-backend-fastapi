@@ -16,6 +16,8 @@ This backend is designed around standard e-commerce features:
 | **Products** | Stores all items available for sale, including descriptions, inventory, and pricing. | Product Name, Price, Stock Quantity, Description. | 
 | **Orders** | Tracks customer purchases, managing the items bought, total cost, and order status (e.g., pending, shipped). | Order ID, Date Placed, Total Amount, Items List. | 
 | **Authentication** | Provides secure token-based login (**JWT**) so only authorized users can place orders or manage products. | Access Tokens, Login Verification. | 
+| **Addresses** | Stores shipping and billing locations, linking them directly to a user's account for repeated use. | Street, City, Postal Code, Country, associated User ID. | 
+
 
 ---
 
@@ -46,6 +48,56 @@ Standard settings for security tokens
 ALGORITHM="HS256" ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
+---
+
+# API Workflow: Role-Specific Flows
+
+**1. Customer Flow: Placing an Order**
+
+User Login (Auth Component) --> Retrieve Products & Addresses --> Create Order (Orders Component)
+
+ **2. Admin Flow: Management Actions (CRUD)**
+ 
+Admin Login (Auth Component) --> Perform CRUD Operations (on Products, Users, Orders, etc.)
+
+
+---
+
+# 🔑 Key API Endpoints & Role Access
+
+Access to specific API endpoints is governed by the user's role, ensuring a secure separation between customer and administrative functionality.
+
+# 1. Public Access Endpoints
+
+These endpoints require no authentication and are available to any user:
+
+**Authentication & Login** (POST /auth/login): Allows users to submit credentials and receive a JWT access token.
+
+**Product Catalog**(GET /products/): Enables browsing of the entire product catalog and retrieving details for specific products.
+
+# 2. Customer Access (Authenticated)
+
+Once a user has authenticated, they can use their JWT token to access personal and transactional resources:
+
+**Shopping Cart Management** (POST /cart/items): Customers can add or update items within their personal shopping cart.
+
+**Order Placement** (POST /orders/): Customers can finalize their cart content and convert it into a new, trackable order.
+
+**Order History** (GET /orders/me): Users can securely view their complete history of orders.
+
+**Address Management** (POST/GET/PUT/DELETE /addresses/): Customers can create new addresses, view all saved addresses, and update or delete specific addresses.
+
+# 3. Admin Access (Privileged)
+
+Admin endpoints require a validated JWT token with the Admin role, allowing management and modification of core business data:
+
+**Product Management** (PUT/DELETE /admin/products/{id}): Admins have full CRUD capabilities to update, manage, or remove any product entry.
+
+**Order Status Updates** (PUT /admin/orders/{id}/status): Admins are authorized to change the shipping or processing status of any customer order.
+
+
+---
+
 ## 🚀 Setting Up Your Project to Run Locally
 
 ### 1. Get the Project and Install Dependencies
@@ -65,9 +117,6 @@ cd ecommerce-backend-fastapi
 
 pip install -r requirements.txt
 ```
-
-
----
 
 # 2. Prepare the Database (Alembic)
 Alembic is the tool that reads your Python database structure and creates the necessary tables in your database.
