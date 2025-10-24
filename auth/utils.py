@@ -19,13 +19,13 @@ from app import models
 import os
 
 
-# Creating instance of cyrptcontext and also, depcrecated is used if any older hashing shcmes were used passlib would automatically upgrade them to bcrypt
+# Creating instance of cyrptcontext and also, depcrecated is used if any older hashing schemes were used passlib would automatically upgrade them to bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
     if isinstance(password, str):
-        # calls the (.hash()) method on the pwd_contect object
+        # calls the (.hash()) method on the pwd_context object
         password = password.encode("utf-8")
 
     return pwd_context.hash(password)
