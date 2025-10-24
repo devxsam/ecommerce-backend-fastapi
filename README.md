@@ -6,7 +6,7 @@ The goal of this API is to manage the essential components of an online store: *
 
 ---
 
-## 🗺️ Core E-commerce Components (What This API Will Manage)
+# 🗺️ Core E-commerce Components (What This API Will Manage)
 
 This backend is designed around standard e-commerce features:
 
@@ -25,7 +25,7 @@ This backend is designed around standard e-commerce features:
 
 A secure backend must keep its sensitive connection details private. This section explains the mandatory step to set up your database and security keys locally.
 
-### 1. Setting Up Your Secret `.env` File
+### 1. Setting Up Your `.env` File
 
 Since this repository is public, you **must not** put your database link or security keys directly into any code file.
 
@@ -50,7 +50,7 @@ ALGORITHM="HS256" ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 ---
 
-# API Workflow: Role-Specific Flows
+## API Workflow: Role-Specific Flows
 
 **1. Customer Flow: Placing an Order**
 
@@ -63,11 +63,11 @@ Admin Login (Auth Component) --> Perform CRUD Operations (on Products, Users, Or
 
 ---
 
-# 🔑 Key API Endpoints & Role Access
+## 🔑 Key API Endpoints & Role Access
 
 Access to specific API endpoints is governed by the user's role, ensuring a secure separation between customer and administrative functionality.
 
-# 1. Public Access Endpoints
+## 1. Public Access Endpoints
 
 These endpoints require no authentication and are available to any user:
 
@@ -75,7 +75,7 @@ These endpoints require no authentication and are available to any user:
 
 **Product Catalog**(GET /products/): Enables browsing of the entire product catalog and retrieving details for specific products.
 
-# 2. Customer Access (Authenticated)
+## 2. Customer Access (Authenticated)
 
 Once a user has authenticated, they can use their JWT token to access personal and transactional resources:
 
@@ -87,7 +87,7 @@ Once a user has authenticated, they can use their JWT token to access personal a
 
 **Address Management** (POST/GET/PUT/DELETE /addresses/): Customers can create new addresses, view all saved addresses, and update or delete specific addresses.
 
-# 3. Admin Access (Privileged)
+## 3. Admin Access (Privileged)
 
 Admin endpoints require a validated JWT token with the Admin role, allowing management and modification of core business data:
 
@@ -98,9 +98,9 @@ Admin endpoints require a validated JWT token with the Admin role, allowing mana
 
 ---
 
-## 🚀 Setting Up Your Project to Run Locally
+# 🚀 Setting Up Your Project to Run Locally
 
-### 1. Get the Project and Install Dependencies
+## 1. Get the Project and Install Dependencies
 
 First, download the project files and install the required Python libraries inside a virtual environment (`venv`).
 
@@ -118,7 +118,7 @@ cd ecommerce-backend-fastapi
 pip install -r requirements.txt
 ```
 
-# 2. Prepare the Database (Alembic)
+## 2. Prepare the Database (Alembic)
 Alembic is the tool that reads your Python database structure and creates the necessary tables in your database.
 
 1. Verify: Confirm that your DATABASE_URL is correctly added to your local .env file.
@@ -136,7 +136,7 @@ Use Uvicorn to run the API. The --reload setting means the server will instantly
 uvicorn app.main:app --reload
 ```
 
-## 🔗 Documentation and Database Updates
+# 🔗 Documentation and Database Updates
 
 Once the server is running, you can access the interactive documentation at ( http://127.0.0.1:8000/docs ).
 
@@ -154,7 +154,7 @@ alembic revision --autogenerate -m "description_of_new_feature"
 ```
 alembic upgrade head
 ```
-## 📁 Project Folder Breakdown
+# 📁 Project Folder Breakdown
 
 ```
 ecommerce-backend-fastapi/
