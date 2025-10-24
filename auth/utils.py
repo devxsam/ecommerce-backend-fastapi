@@ -3,7 +3,7 @@ from datetime import (
 )  # used for the expiration time for JWT
 from jose import (
     JWTError, jwt
-)  # used for creating and decoding JWTs and for handling potential errors during decoding.
+)  # used for creating and decoding JWTs and for handling potential errors during decoding..
 from passlib.context import (
     CryptContext
 )  # for hashing and verifying passwords
@@ -12,7 +12,7 @@ from fastapi import (
 )  # dependency inject system to manage sessions.
 from fastapi.security import (
     OAuth2PasswordBearer
-)  # class that provides a dependency to extract the token from the request's authorization header.
+)  # class that provides a dependency to extract the token from the requests authorization header..
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
