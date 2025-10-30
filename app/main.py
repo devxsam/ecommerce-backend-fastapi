@@ -22,11 +22,14 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 
-@app.post("/token", tags=["Authentication"])
-def login_for_access_token(
+@app.post("/login", tags=["Login Authentication"])
+def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
+    
+    """Authenticates a user and returns a JWT access token."""
+
     user = crud.get_user_by_email(db, email=form_data.username)
 
     login_password = form_data.password[:72]
@@ -46,12 +49,19 @@ def login_for_access_token(
 
 
 @app.post(
-    "/users/",
+    "/signup/",
     response_model=schemas.User,
     tags=["Users"],
     status_code=status.HTTP_201_CREATED
-)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+) 
+
+
+def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
+
+    """
+    Registers a new regular user account. **Unauthenticated Access.**
+    """
+
     db_user = crud.get_user_by_email(db, email=user.email)
 
     if db_user:
@@ -59,37 +69,46 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
         )
-
+    
     new_user = crud.create_user(db=db, user=user)
 
     return new_user
 
 
 # returning here the list of object and also adding the safety.
-@app.get("/users/", response_model=List[schemas.User], tags=["Users"])
+@app.get("/users", response_model=List[schemas.User], tags=["Users"])
 def read_users(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
     current_admin: models.User = Depends(auth_util.get_current_admin_user)
 ):
+    
+    """
+    Retrieves a list of all user accounts. **Requires Admin Privileges.**
+    """
+
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
 
 
-@app.get("/users/me", response_model=schemas.User, tags=["Users"])
-def read_users_me(
+@app.get("/profile", response_model=schemas.User, tags=["Users"])
+def read_my_profile(
     current_user: models.User = Depends(auth_util.get_current_user)
 ):
+    """Retrieves the details of the currently authenticated user's profile. **Only accessible to authenticated users.**"""
+    
     return current_user
 
 
-@app.get("/users/{user_id}", response_model=schemas.User, tags=["Users"])
-def read_user(
+@app.get("/users/{user_id}/", response_model=schemas.User, tags=["Users"])
+def read_user_by_id(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth_util.get_current_user)
+    current_user: models.User = Depends(auth_util.get_current_admin_user)
 ):
+    
+    """Retrieves a specific user's details by ID. **Only accessible to authenticated ADMINS.** (User must be the Admin)."""
     db_user = crud.get_user(db, user_id=user_id)
 
     if db_user is None:
@@ -102,17 +121,20 @@ def read_user(
 
 
 @app.post(
-    "/admin/users/",
+    "/admin/users",
     response_model=schemas.User,
     tags=["Admin"],
     status_code=status.HTTP_201_CREATED
 )
-def create_user_by_admin(
+def Admin_Signup_by_Authenticated_Admin(
     user: schemas.AdminUserCreate,  # Expects email, password, AND role
     db: Session = Depends(get_db),
 
     current_admin: models.User = Depends(auth_util.get_current_admin_user)
 ):
+    """
+    Creates a new user account with a specified role (user/admin). **Requires Admin Privileges.**
+    """
 
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
@@ -137,17 +159,24 @@ def create_product(
     db: Session = Depends(get_db),
     current_admin_user: models.User = Depends(auth_util.get_current_admin_user)
 ):
+    
+    """Creates a new product listing. **Requires Admin Privileges.**"""
+
+
     return crud.create_product(db=db, product=product)
 
 
 @app.get("/products/", response_model=List[schemas.Product], tags=["Products"])
-def read_products(
+def search_any_product(
     category: Optional[str] = None,
     subcategory: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
+    
+    """Retrieves a list of products, optionally filtered by category or subcategory. **Unauthenticated Access.**"""
+
     products = crud.get_filtered_products(
         db,
         category=category,
@@ -159,11 +188,14 @@ def read_products(
 
 
 @app.get("/products/{product_id}", response_model=schemas.Product, tags=["Products"])
-def read_product(
+def find_a_product_by_id(
     product_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth_util.get_current_user)
+    current_user: models.User = Depends(auth_util.get_current_admin_user)
 ):
+    
+    """Retrieves the details for a single product by ID. **Only accessible to authenticated users.**"""
+
     db_product = crud.get_product(db, product_id=product_id)
     if db_product is None:
         raise HTTPException(
@@ -174,33 +206,39 @@ def read_product(
 
 
 @app.post(
-    "/addresses/",
+    "/addresses",
     response_model=schemas.Address,
     tags=["Addresses"],
     status_code=status.HTTP_201_CREATED
 )
-def create_user_address(
-    address: schemas.AddressCreate,
+def Add_user_address(
+    address: schemas.AddressCreate, 
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth_util.get_current_user),
-    current_admin_user: models.User = Depends(
-        auth_util.get_current_admin_user
-    )
+    current_user: models.User = Depends(auth_util.get_current_user)
+    
 ):
-    db_address = crud.create_address(db=db, address=address)
+    
+    """Adds a new address for the specified user. **Only accessible to authenticated users.**"""
 
-    # Check if the CRUD function returned None (meaning user_id was invalid)
+    # FIX: Pass the securely obtained user_id to the CRUD function
+    db_address = crud.create_address(
+        db=db, 
+        address=address,
+        user_id=current_user.user_id 
+    )
+
     if db_address is None:
+        # The error handling must now reflect the CRUD function's inability to create the address
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with ID {address.user_id} not found."
+            detail="Could not create address."
         )
 
     return db_address
 
 
 @app.get(
-    "/users/{user_id}/addresses/",
+    "/users/{user_id}/addresses",
     response_model=List[schemas.Address],
     tags=["Addresses"]
 )
@@ -209,42 +247,50 @@ def read_user_addresses(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth_util.get_current_user)
+    current_user: models.User = Depends(auth_util.get_current_admin_user)
 ):
+    
+    """Retrieves a list of addresses belonging to a specific user. **Requires Admin Privileges.**"""
     addresses = crud.get_addresses_by_user(
         db, user_id=user_id, skip=skip, limit=limit
     )
     return addresses
 
 
-@app.get("/addresses/{address_id}", response_model=schemas.Address, tags=["Addresses"])
-def read_address(
-    address_id: int,
+@app.get("/addresses", response_model=List[schemas.Address], tags=["Addresses"])
+def list_my_addresses(
+    skip: int = 0,
+    limit: int = 100,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth_util.get_current_user)
 ):
-    db_address = crud.get_address(db, address_id=address_id)
-    if db_address is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Address not found"
-        )
-    return db_address
+    """
+    Retrieves a list of all addresses belonging to the currently authenticated user.
+    Uses the user_id from the authentication token.
+    """
+    addresses = crud.get_addresses_by_user(
+        db, user_id=current_user.user_id, skip=skip, limit=limit
+    )
+    return addresses
 
 
-@app.get("/orders/{order_id}", response_model=schemas.Order, tags=["Orders"])
-def read_order(
-    order_id: int,
+@app.get("/orders", response_model=List[schemas.Order], tags=["Orders"])
+def list_my_orders( # New function for listing all user orders
+    skip: int = 0,
+    limit: int = 100,
     db: Session = Depends(get_db),
+    # The current_user dependency automatically gets the user_id from the token
     current_user: models.User = Depends(auth_util.get_current_user)
 ):
-    db_order = crud.get_order(db, order_id=order_id)
-    if db_order is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Order not found"
-        )
-    return db_order
+    
+    # We pass the user_id from the authenticated user directly to CRUD
+    orders = crud.get_user_orders(
+        db, 
+        user_id=current_user.user_id, 
+        skip=skip, 
+        limit=limit
+    )
+    return orders
 
 
 @app.get(
@@ -257,8 +303,11 @@ def read_user_orders(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth_util.get_current_user)
+    current_user: models.User = Depends(auth_util.get_current_admin_user)
 ):
+    
+    """Retrieves a list of orders placed by any specific user ID. **Requires Admin Privileges.**"""
+
     orders = crud.get_user_orders(
         db, user_id=user_id, skip=skip, limit=limit
     )
@@ -266,25 +315,24 @@ def read_user_orders(
 
 
 @app.post(
-    "/orders/",
+    "/checkout",
     response_model=schemas.Order,
     tags=["Orders"],
     status_code=status.HTTP_201_CREATED
 )
-def place_order(
+def checkout(
     order: schemas.OrderCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth_util.get_current_user)
 ):
 
     """
-    Only accessible to authenticated users.
+    Places a new order using the items and addresses provided. 
+    The user ID is automatically inferred from the authentication token.
+    **Only accessible to authenticated users.**
     """
 
-    # You might also want to ensure order.user_id matches current_user.user_id here
-    # for security, but the main point is the dependency check.
-
-    result = crud.create_order(db=db, order=order)
+    result = crud.create_order(db=db, order=order,  user_id=current_user.user_id )
 
     if isinstance(result, dict) and 'error' in result:
         raise HTTPException(

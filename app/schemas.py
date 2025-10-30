@@ -83,7 +83,6 @@ class Product(ProductBase):
 # ------------------ Address Schemas ------------------
 
 class AddressBase(BaseModel):
-    user_id: int
     address_line1: str
     address_line2: Optional[str] = None
     city: str
@@ -103,6 +102,7 @@ class AddressCreate(AddressBase):
 
 class Address(AddressBase):
     address_id: int
+    user_id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -134,7 +134,7 @@ class OrderDetail(OrderDetailBase):
 # ------------------ Order Schemas ------------------
 
 class OrderCreate(BaseModel):
-    user_id: int
+   
     shipping_address_id: int
     billing_address_id: int
 

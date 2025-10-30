@@ -159,19 +159,14 @@ def get_addresses_by_user(
 
 
 def create_address(
-    db: Session, address: schemas.AddressCreate
-) -> Optional[models.Address]:
-    # Check if the user_id exists before creating the address (Integrity Check)
-    # We will raise an HTTP 404 in the endpoint if this is None, so returning None is fine here.
-
-    db_user = db.query(models.User).filter(
-        models.User.user_id == address.user_id
-    ).first()
-    if not db_user:
-        return None  # Indicate user not found
-
-    # Convert Pydantic object to dictionary and create SQLAlchemy model instance
-    db_address = models.Address(**address.model_dump())
+    db: Session, address: schemas.AddressCreate, user_id: int
+) -> models.Address:
+    
+    # Uses the secure, authenticated user_id passed from main.py to link the address
+    db_address = models.Address(
+        **address.model_dump(),
+        user_id=user_id 
+    )
 
     db.add(db_address)
     db.commit()
@@ -179,17 +174,12 @@ def create_address(
     return db_address
 
 
+
 def create_order(
-    db: Session, order: schemas.OrderCreate
+    db: Session, order: schemas.OrderCreate, user_id: int
 ) -> Optional[models.Order | dict]:
-    # Corrected return type hint to include 'dict' for error message logic
-    db_user = db.query(models.User).filter(
-        models.User.user_id == order.user_id
-    ).first()
-    if not db_user:
-
-        return {"error": f"User ID {order.user_id} not found."}
-
+    
+   
     # for shippingg
     db_shipping_address = db.query(models.Address).filter(
         models.Address.address_id == order.shipping_address_id
@@ -234,7 +224,7 @@ def create_order(
         db_details.append(db_detail)
 
     db_order = models.Order(
-        user_id=order.user_id,
+        user_id=user_id,
         shipping_address_id=order.shipping_address_id,
         billing_address_id=order.billing_address_id,
         total_amount=total_amount,
